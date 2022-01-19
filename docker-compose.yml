@@ -1,0 +1,55 @@
+version: "3.1"
+
+services:
+  postgres-dev:
+    image: postgres:13-alpine
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./postgres_data/:/var/lib/postgresql/data/
+    ports:
+      - 54320:5432
+    networks:
+      - dwv_api_dev
+
+  mysql-dev:
+    image: mysql:latest
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      - MYSQL_PASSWORD=password
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=serverdwv_beta
+    ports:
+      - 3307:3306
+    volumes:
+      - ./mysql_data/:/var/lib/mysql
+    networks:
+      - dwv_api_dev
+
+  redis-dev:
+    image: redis:alpine
+    command: redis-server --requirepass password
+    ports:
+      - 63790:6379
+    networks:
+      - dwv_api_dev
+    volumes:
+      - ./redis_data:/var/lib/redis
+
+  typesense-dev:
+    image: typesense/typesense:0.21.0
+    entrypoint: sh -c "/opt/typesense-server --data-dir /data --api-key=local-typesense-api-key --enable-cors"
+    ports:
+      - "8108:8108"
+    networks:
+      - dwv_api_dev
+    volumes:
+      - typesense-data:/data
+
+networks:
+  dwv_api_dev:
+    driver: bridge
+volumes:
+  typesense-data:
+    driver: local
